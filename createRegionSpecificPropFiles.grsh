@@ -1,0 +1,82 @@
+#! /usr/bin/env groovy
+
+import groovy.io.*
+
+dir = new File(args[0])
+
+dir.traverse(
+    type : FileType.FILES,
+    nameFilter : ~/.*\.properties/,
+    maxDepth : 0
+ ) { propertyFile ->
+
+  println "Processing Property File: ${propertyFile.getPath()} ..."
+
+  Properties props = new Properties()
+  props.load(new FileReader(propertyFile))
+  def config = new ConfigSlurper().parse(props)
+
+  def newDir = new File("./${config.__TS_REGION_NAME__}")
+
+  if (!newDir.mkdir() && !newDir.exists()) {
+    println "Failed to create directory: ${newDir.getPath()} !!!"
+  } else {
+
+    def outfile = new File(newDir, "RegionEnv.cfg")  
+  
+    if (outfile.exists()) {
+      // Clear the file and write it again
+      if (outfile.isFile()) { outfile.setText("") } 
+      else {
+        throw new RuntimeException(
+          "Attempting to write to file that exists as directory: ${outfile.getPath()}")
+      }
+    }
+  
+    outfile << "# Region specific properties for region: ${config.__TS_REGION_NAME__}" + '\n'
+    outfile << " " + '\n'
+    outfile << "TS_REGION_NAME = ${config.__TS_REGION_NAME__}" + '\n'
+    outfile << "AppServerName = ${config.__AppServerName__}" + '\n'
+    outfile << "CellName = ${config.__CellName__}" + '\n'
+    outfile << "URLName = ${config.__URLName__}" + '\n'
+    outfile << "TSRoot = ${config.__TSRoot__}" + '\n'
+    outfile << "WASHome = ${config.__WASHome__}" + '\n'
+    outfile << "SLNSPort = ${config.__SLNSPort__}" + '\n'
+    outfile << "EmailAddress = ${config.__EmailAddress__}" + '\n'
+    outfile << "NumberAllowedFailedPasswordAttempts = ${config.__PASSWORD_FAILED_ATTEMPTS__}" + '\n'
+    outfile << "TSPROXY_USERNAME = ${config.__TSPROXY_USERNAME__}" + '\n'
+    outfile << "TSPROXY_PASSWORD = ${config.__TSPROXY_PASSWORD__}" + '\n'
+    outfile << "DatabaseServerName = ${config.__DatabaseServerName__}" + '\n'
+    outfile << "TSDBVendor = ${config.__TSDBVendor__}" + '\n'
+    outfile << "TSDBName = ${config.__TSDBName__}" + '\n'
+    outfile << "DBUserID = ${config.__DBUserID__}" + '\n'
+    outfile << "DBPasswd = ${config.__DBPasswd__}" + '\n'
+    outfile << "DBPort = ${config.__DBPort__}" + '\n'
+    outfile << "ArchiveDatabaseServerName = ${config.__ArchiveDatabaseServerName__}" + '\n'
+    outfile << "ArchiveDBVendor = ${config.__ArchiveDBVendor__}" + '\n'
+    outfile << "ArchiveDBName = ${config.__ArchiveDBName__}" + '\n'
+    outfile << "ArchiveDBUserID = ${config.__ArchiveDBUserID__}" + '\n'
+    outfile << "ArchiveDBPasswd = ${config.__ArchiveDBPasswd__}" + '\n'
+    outfile << "ArchiveDBPort = ${config.__ArchiveDBPort__}" + '\n'
+    outfile << "CustomsCSDatabaseServerName = " + '\n'
+    outfile << "CustomsCSDBVendor = " + '\n'
+    outfile << "CustomsCSDBName = " + '\n'
+    outfile << "CustomsCSDBUserID = " + '\n'
+    outfile << "CustomsCSDBPasswd = " + '\n'
+    outfile << "CustomsCSDBPort = " + '\n'
+    outfile << "LIVELINK_SERVER = ${config.__LIVELINK_SERVER__}" + '\n'
+    outfile << "LIVELINK_PORT = ${config.__LIVELINK_PORT__}" + '\n'
+    outfile << "LIVELINK_DB = ${config.__LIVELINK_DB__}" + '\n'
+    outfile << "LIVELINK_USER = ${config.__LIVELINK_USER__}" + '\n'
+    outfile << "LIVELINK_PASSWORD = ${config.__LIVELINK_PASSWORD__}" + '\n'
+  
+    if (!config.__PRINTER_LIST__.contains('unix_printer_list')) {
+      outfile << "# unix_printer_list[] =" + '\n\n'
+    } else {
+      outfile << "${config.__PRINTER_LIST__}" + '\n'
+    }
+  }
+
+}
+
+System.exit(0)
